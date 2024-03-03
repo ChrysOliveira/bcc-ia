@@ -1,5 +1,6 @@
 import random
 import numpy as np
+import copy
 from estruturas.pilha import Pilha
 from no import No
 
@@ -14,6 +15,7 @@ class BracoRobotico:
         self.posicao_braco = int(self.quantidade_casas / 2)
         self.dic_caixas_para_empilhar = dict()
         self.casas_reservadas_para_empilhar = []
+        self.esteira_ja_foi_organizada = False
 
     def iniciar(self):
         # np.random.shuffle(self.posicoes_iniciais)
@@ -42,7 +44,7 @@ class BracoRobotico:
             self.casas_reservadas_para_empilhar.append(i)
 
     def imprimir(self, no):
-        estado = np.copy(no.estado)
+        estado = copy.deepcopy(no.estado)
 
         for i, item in enumerate(estado):
             while(item.tamanho() > 0):
@@ -50,49 +52,82 @@ class BracoRobotico:
             print()
 
     def testar_objetivo(self, no):
-        somente_nas_pilhas_e_ordenado = True
-        estado = np.copy(no.estado)
+        caixas_somente_nas_pilhas_e_ordenado = True
+        estado = copy.deepcopy(no.estado)
         for i in self.casas_reservadas_para_empilhar:
-            if(estado[i].tamanho() == 0):
-                somente_nas_pilhas_e_ordenado = False
+            if(estado[i].esta_sem_caixa()):
+                caixas_somente_nas_pilhas_e_ordenado = False
             else:
                 menor_valor = estado[i].pop()
                 meio_valor = estado[i].pop()
                 maior_valor = estado[i].pop()
                 if(menor_valor > meio_valor or meio_valor > maior_valor):
-                    somente_nas_pilhas_e_ordenado = False
+                    caixas_somente_nas_pilhas_e_ordenado = False
 
         for i in range(len(self.casas_reservadas_para_empilhar), self.quantidade_casas):
-            if (estado[i].tamanho() != 0):
-                somente_nas_pilhas_e_ordenado = False
+            if not estado[i].esta_sem_caixa():
+                caixas_somente_nas_pilhas_e_ordenado = False
 
-        return somente_nas_pilhas_e_ordenado
+        return caixas_somente_nas_pilhas_e_ordenado
 
     def gerar_sucessores(self, no):
-        estado = no.estado
+        estado = copy.deepcopy(no.estado)
+
         nos_sucessores = []
 
-        # posicao = np.where(estado == "_")[0][0] # posicao do maior valor buscando no dicionario
+        if not self.esteira_ja_foi_organizada:
 
-        expansoes = [self._direita, self._esquerda]  # nos vamos ter direita e esquerda e buscar qualquer caixa por enquanto
-        random.shuffle(expansoes)
+            no_sucessor = self.libera_pilhas_reservadas_esquerda(no)
+            if no_sucessor is not None:
+                nos_sucessores.append(no_sucessor)
+                return nos_sucessores
 
-        for expansao in expansoes:
-            no_sucessor = expansao(no)
-            if no_sucessor is not None: nos_sucessores.append(no_sucessor)
+        self.imprimir(no) #CHRYS: estou vendo se fez o swap e atualizou a posicao do braco
+        if self.esteira_ja_foi_organizada:
+
+            expansoes = [self._esquerda, self._direita]  # nos vamos ter direita e esquerda e buscar qualquer caixa por enquanto
+            # random.shuffle(expansoes)
+
+            for expansao in expansoes:
+                no_sucessor = expansao(no)
+                if no_sucessor is not None: nos_sucessores.append(no_sucessor)
 
         return nos_sucessores
+
+    def libera_pilhas_reservadas_esquerda(self, no):
+        sucessor = copy.deepcopy(no.estado)
+        custo_movimentacao = 0.0
+
+        for i in self.casas_reservadas_para_empilhar:
+            if not no.estado[i].esta_sem_caixa():
+                caixa = no.estado[i]
+                nova_posicao = i + 1
+
+                while no.estado[nova_posicao] is not None or nova_posicao in self.casas_reservadas_para_empilhar:
+                    nova_posicao = nova_posicao + 1
+
+                no.estado[i] = None
+                no.estado[nova_posicao] = caixa
+
+                # if i == len(self.casas_reservadas_para_empilhar) - 1:
+                #     self.esteira_ja_foi_organizada = True
+                self.posicao_braco = nova_posicao
+                return No(sucessor, no, "🔧")
+
+            if i == len(self.casas_reservadas_para_empilhar) - 1:
+                self.esteira_ja_foi_organizada = True
 
     # movimento para esquerda
     def _esquerda(self, no):
 
         if self.posicao_braco not in [0]:
             # peça de baixo desce
-            sucessor = np.copy(no.estado)
+            sucessor = copy.deepcopy(no.estado)
+            custo_movimentacao = 0.0
             self.posicao_braco = self.posicao_braco - 1
 
-            while no.estado[self.posicao_braco][len(no.estado[self.posicao_braco]) - 1] != "_" and self.posicao_braco not in self.casas_reservadas_para_empilhar:
-                print("A")
+            # while no.estado[self.posicao_braco][len(no.estado[self.posicao_braco]) - 1] != "_" and self.posicao_braco not in self.casas_reservadas_para_empilhar:
+            #     print("A")
 
             return No(sucessor, no, "⬅️")
         else:
@@ -101,9 +136,10 @@ class BracoRobotico:
     # movimento para direita
     def _direita(self, no):
 
-        if self.posicao_braco not in [self.tamanho_linha_x_coluna[0] - 1]:
+        if self.posicao_braco not in [self.quantidade_casas - 1]:
             # peça de baixo desce
-            sucessor = np.copy(no.estado)
+            sucessor = copy.deepcopy(no.estado)
+            custo_movimentacao = 0.0
             return No(sucessor, no, "➡️")
         else:
             None
@@ -112,7 +148,7 @@ class BracoRobotico:
     # esta heurística não é admissível, pois, pode dificultar
     # a chegada de um resultado final
     def heuristica2(self, no):
-        estado = no.estado
+        estado = copy.deepcopy(no.estado)
         resultado = self.estado_objetivo
         return sum(1 for i in range(len(resultado)) if resultado[i] == estado[i])
 
@@ -120,7 +156,7 @@ class BracoRobotico:
     # Heurística adminissível, pois, sempre o resultado chega mais perto
     # Transformei o array em matriz para fazer cálculo de distância
     def heuristica(self, no):
-        estado = no.estado
+        estado = copy.deepcopy(no.estado)
         resultado = [["1", "2", "3"], ["4", "5", "6"], ["7", "8", "_"]]
         estado_matriz = [estado[0:3], estado[3:6], estado[6:9]]
 
