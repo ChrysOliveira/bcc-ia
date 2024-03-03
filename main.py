@@ -7,11 +7,15 @@ from problemas.braco_robotico import BracoRobotico
 
 if __name__ == "__main__":
     problema = BracoRobotico()
+    no_raiz = problema.iniciar()
 
+    problema.imprimir(no_raiz)
+
+    print(problema.testar_objetivo(no_raiz))
     #(qtd_blablaestados_visitados, no_solucao) = dfs(problema)
     #(qtd_estados_visitados, no_solucao) = bfs(problema)
     # (qtd_estados_visitados, no_solucao) = a_estrela(problema)
-    #(qtd_estados_visitados, no_solucao) = dijkstra(problema)
+    # (qtd_estados_visitados, no_solucao) = dijkstra(problema)
 
     # if(no_solucao is None):
     #     print("Não houve solução ao problema")

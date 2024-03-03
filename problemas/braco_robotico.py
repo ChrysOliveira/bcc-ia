@@ -1,46 +1,72 @@
 import random
 import numpy as np
+from estruturas.pilha import Pilha
 from no import No
 
 
 class BracoRobotico:
 
     def __init__(self):
-        self.estado_inicial = [["_"], [10], [20]]
+        self.posicoes_iniciais = [None, 10, 20]
+        self.estado_inicial = np.array([Pilha(), Pilha(), Pilha()], dtype=Pilha)
         # self.estado_objetivo = np.matrix([[20, "_", "_"], [10, "_", "_"], ["_", "_", "_"]])
         self.quantidade_casas = len(self.estado_inicial)
         self.posicao_braco = int(self.quantidade_casas / 2)
         self.dic_caixas_para_empilhar = dict()
         self.casas_reservadas_para_empilhar = []
-        self.identifica_casas_reservadas_para_empilhar()
 
     def iniciar(self):
-        # np.random.shuffle(self.estado_inicial)
+        # np.random.shuffle(self.posicoes_iniciais)
+        self.popula_posicoes_iniciais()
         self.cria_dicionario_casas_para_empilhar()
+        self.identifica_casas_reservadas_para_empilhar()
 
         self.no_raiz = No(self.estado_inicial)
         return self.no_raiz
 
+    def popula_posicoes_iniciais(self):
+        for i, item in enumerate(self.posicoes_iniciais):
+            self.estado_inicial[i].push(item)
+            self.estado_inicial[i].push(None)
+            self.estado_inicial[i].push(None)
+
     def cria_dicionario_casas_para_empilhar(self):
-        esteira = np.array(self.estado_inicial)
+        esteira = self.estado_inicial
 
         for i, item in enumerate(esteira):
-            if item != "_":
-                self.dic_caixas_para_empilhar[i] = item
+            if item.ultimo_valor() != "_":
+                self.dic_caixas_para_empilhar[i] = item.ultimo_valor()
 
     def identifica_casas_reservadas_para_empilhar(self):
         for i in range(int(self.quantidade_casas / 3)):
             self.casas_reservadas_para_empilhar.append(i)
 
     def imprimir(self, no):
-        estado = no.estado
-        return "| " + estado[0] + " | " + estado[1] + " | " + estado[
-            2] + " |\n| " + estado[3] + " | " + estado[4] + " | " + estado[
-            5] + " |\n| " + estado[6] + " | " + estado[7] + " | " + estado[
-            8] + " |"
+        estado = np.copy(no.estado)
+
+        for i, item in enumerate(estado):
+            while(item.tamanho() > 0):
+                print(item.pop(), end=" ")
+            print()
 
     def testar_objetivo(self, no):
-        return np.array_equal(no.estado, self.estado_objetivo)
+        somente_nas_pilhas_e_ordenado = True
+        estado = np.copy(no.estado)
+        for i in self.casas_reservadas_para_empilhar:
+            if(estado[i].tamanho() == 0):
+                somente_nas_pilhas_e_ordenado = False
+            else:
+                menor_valor = estado[i].pop()
+                meio_valor = estado[i].pop()
+                maior_valor = estado[i].pop()
+                if(menor_valor > meio_valor or meio_valor > maior_valor):
+                    somente_nas_pilhas_e_ordenado = False
+
+        for i in range(len(self.casas_reservadas_para_empilhar), self.quantidade_casas):
+            if (estado[i].tamanho() != 0):
+                somente_nas_pilhas_e_ordenado = False
+
+        return somente_nas_pilhas_e_ordenado
 
     def gerar_sucessores(self, no):
         estado = no.estado
