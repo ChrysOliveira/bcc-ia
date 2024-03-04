@@ -14,6 +14,8 @@ if __name__ == "__main__":
     # (qtd_estados_visitados, no_solucao) = a_estrela(problema)
     (qtd_estados_visitados, no_solucao) = dijkstra(problema)
 
+
+    print("bbb")
     # if(no_solucao is None):
     #     print("Não houve solução ao problema")
     # else:

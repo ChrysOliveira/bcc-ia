@@ -56,17 +56,28 @@ class BracoRobotico:
         estado = copy.deepcopy(no.estado)
         for i in self.casas_reservadas_para_empilhar:
             if(estado[i].esta_sem_caixa()):
-                caixas_somente_nas_pilhas_e_ordenado = False
+                # caixas_somente_nas_pilhas_e_ordenado = False
+                return False
             else:
                 menor_valor = estado[i].pop()
                 meio_valor = estado[i].pop()
                 maior_valor = estado[i].pop()
-                if(menor_valor > meio_valor or meio_valor > maior_valor):
-                    caixas_somente_nas_pilhas_e_ordenado = False
+
+                if(maior_valor is not None and meio_valor is not None):
+                    if (meio_valor > maior_valor):
+                        return False
+                    else:
+                        if(menor_valor is not None):
+                            if(menor_valor > meio_valor):
+                                return False
+
+                # if(menor_valor > meio_valor or meio_valor > maior_valor):
+                #     caixas_somente_nas_pilhas_e_ordenado = False
 
         for i in range(len(self.casas_reservadas_para_empilhar), self.quantidade_casas):
             if not estado[i].esta_sem_caixa():
-                caixas_somente_nas_pilhas_e_ordenado = False
+                #caixas_somente_nas_pilhas_e_ordenado = False
+                return False
 
         return caixas_somente_nas_pilhas_e_ordenado
 
