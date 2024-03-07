@@ -9,14 +9,14 @@ class BracoRobotico:
       self.caixas = None
       self.no_raiz = None
       self.estado_inicial = np.array([
-        13, 0, 0,
+        3, 0, 0,
         0, 0, 0,
         20, 0, 0,
         10, 0, 0,
         30, 0, 0
       ])
       self.estado_objetivo = np.array([
-        1, 0, 0,
+        5, 0, 0,
         30, 20, 10,
         0, 0, 0,
         0, 0, 0,
@@ -30,7 +30,7 @@ class BracoRobotico:
 
     def procurar_caixa(self, estado_atual):
         self.caixas = []
-        for i in range(6, len(estado_atual), 3):
+        for i in range(3, len(estado_atual)):
             caixa_peso = estado_atual[i]
             if caixa_peso != 0:
                 self.caixas.append((i, caixa_peso))
@@ -55,7 +55,7 @@ class BracoRobotico:
         posicao = estado[0] # posicao do braco do robo
 
         expansoes = [self._direita, self._esquerda]
-        # random.shuffle(expansoes)
+        random.shuffle(expansoes)
 
         for expansao in expansoes:
             no_sucessor = expansao(posicao, no)
@@ -64,9 +64,12 @@ class BracoRobotico:
         return nos_sucessores
 
     def _direita(self, posicao, no):
-        valores_direta = [tupla[0] for tupla in self.caixas if tupla[0] > posicao]
-        if posicao not in [4] and valores_direta:
-            sucessor = np.copy(no.estado)
+
+        sucessor = np.copy(no.estado)
+        self.procurar_caixa(sucessor)
+
+        valores_direta = [tupla[0] for tupla in self.caixas if tupla[0] > 5]
+        if posicao not in [13] and valores_direta:
 
             random.shuffle(valores_direta)
             posicao_nova_caixa = valores_direta[0]
@@ -74,32 +77,34 @@ class BracoRobotico:
 
             self.colocar_caixa(sucessor)
 
-            self.procurar_caixa(sucessor)
             return No(sucessor, no, "➡️")
         else:
             None
 
     def _esquerda(self, posicao, no):
-        valores_esquerda = [tupla[0] for tupla in self.caixas if tupla[0] < posicao]
-        if posicao not in [1] and valores_esquerda:
-            sucessor = np.copy(no.estado)
 
-            random.shuffle(valores_esquerda)
-            posicao_nova_caixa = valores_esquerda[0]
+        sucessor = np.copy(no.estado)
+        self.procurar_caixa(sucessor)
+
+        valores_esquerda = [tupla[0] for tupla in self.caixas if tupla[0] < 6]
+        if posicao not in [2] and valores_esquerda:
+
+            #random.shuffle(valores_esquerda)
+
+            posicao_nova_caixa = max(valores_esquerda)
             self.pegar_caixa(sucessor, posicao_nova_caixa)
 
-            self.colocar_caixa(sucessor)
+            self.desempilhar_caixa(sucessor)
 
-            self.procurar_caixa(sucessor)
             return No(sucessor, no, "⬅️")
         else:
             None
 
     def calcula_posicao_braco(self, casa_atual):
-      return casa_atual // 3
+      return casa_atual
 
     def pegar_caixa(self, no_sucessor, nova_posicao):
-        no_sucessor[0] = nova_posicao // 3
+        no_sucessor[0] = nova_posicao
         no_sucessor[1], no_sucessor[nova_posicao] = no_sucessor[nova_posicao], no_sucessor[1]
 
     def colocar_caixa(self, no_sucessor):
@@ -110,12 +115,23 @@ class BracoRobotico:
                 posicao_livre = i
                 break
 
-        no_sucessor[0] = posicao_livre // 3
+        no_sucessor[0] = posicao_livre
 
         no_sucessor[posicao_livre], no_sucessor[1] = no_sucessor[1], no_sucessor[posicao_livre]
 
-
         #NAO ESQUECER DE ATUALIZAR O no_sucessor[1] para 0
+
+    def desempilhar_caixa(self, no_sucessor):
+        posicao_livre = None
+
+        for i in range(6, 13, 3):
+            if no_sucessor[i] == 0:
+                posicao_livre = i
+                break
+
+        no_sucessor[0] = posicao_livre
+
+        no_sucessor[posicao_livre], no_sucessor[1] = no_sucessor[1], no_sucessor[posicao_livre]
 
 
 
