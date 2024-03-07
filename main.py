@@ -24,3 +24,6 @@ if __name__ == "__main__":
     print(f"Estados visitados: {qtd_estados_visitados}")
     print("Estado Inicial:")
     print(problema.imprimir(problema.no_raiz))
+    if no_solucao is not None:
+        print("Estado Final:")
+        print(problema.imprimir(no_solucao))
