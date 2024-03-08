@@ -11,17 +11,21 @@ class BracoRobotico:
       self.estado_inicial = np.array([
         3, 0, 0,
         0, 0, 0,
+        0, 0, 0,
         20, 0, 0,
+        10, 0, 0,
+        30, 0, 0,
+        40, 0, 0,
         10, 0, 0,
         30, 0, 0
       ])
-      self.estado_objetivo = np.array([
-        5, 0, 0,
-        30, 20, 10,
-        0, 0, 0,
-        0, 0, 0,
-        0, 0, 0
-      ])
+      # self.estado_objetivo = np.array([
+      #   5, 0, 0,
+      #   30, 20, 10,
+      #   0, 0, 0,
+      #   0, 0, 0,
+      #   0, 0, 0
+      # ])
 
     def iniciar(self):
         self.no_raiz = No(self.estado_inicial)
@@ -40,13 +44,23 @@ class BracoRobotico:
 
       e = "   "
       print(f"""
-     \r{estado[5]}{e}{estado[8]}{e}{estado[11]}{e}{estado[14]}
-     \r{estado[4]}{e}{estado[7]}{e}{estado[10]}{e}{estado[13]}
-     \r{estado[3]}{e}{estado[6]}{e}{estado[9]}{e}{estado[12]}
+     \r{estado[5]}{e}{estado[8]}{e}{estado[11]}{e}{estado[14]}{e}{estado[17]}{e}{estado[20]}{e}{estado[23]}{e}{estado[26]}
+     \r{estado[4]}{e}{estado[7]}{e}{estado[10]}{e}{estado[13]}{e}{estado[16]}{e}{estado[19]}{e}{estado[22]}{e}{estado[25]}
+     \r{estado[3]}{e}{estado[6]}{e}{estado[9]}{e}{estado[12]}{e}{estado[15]}{e}{estado[18]}{e}{estado[21]}{e}{estado[24]}
      """)
 
     def testar_objetivo(self, no):
-        return np.array_equal(no.estado, self.estado_objetivo)
+
+        teste = no.estado
+        resposta = 0
+
+        for i in range(0, (len(self.caixas)) // 3):
+            if teste[(3 * i) + 3] > teste[(3 * i) + 4] > teste[(3 * i) + 5] != 0:
+                resposta += 1
+            #print(f"""{teste[(3 * i) + 3]}{teste[(3 * i) + 4]}{teste[(3 * i) + 5]}""")
+
+        # return np.array_equal(no.estado, self.estado_objetivo)
+        return resposta == (len(self.caixas)) // 3
 
     def gerar_sucessores(self, no):
         estado = no.estado
@@ -68,8 +82,8 @@ class BracoRobotico:
         sucessor = np.copy(no.estado)
         self.procurar_caixa(sucessor)
 
-        valores_direta = [tupla[0] for tupla in self.caixas if tupla[0] > 5]
-        if posicao not in [13] and valores_direta:
+        valores_direta = [tupla[0] for tupla in self.caixas if tupla[0] > 8]
+        if posicao not in [25] and valores_direta:
 
             random.shuffle(valores_direta)
             posicao_nova_caixa = valores_direta[0]
@@ -86,7 +100,7 @@ class BracoRobotico:
         sucessor = np.copy(no.estado)
         self.procurar_caixa(sucessor)
 
-        valores_esquerda = [tupla[0] for tupla in self.caixas if tupla[0] < 6]
+        valores_esquerda = [tupla[0] for tupla in self.caixas if tupla[0] < 9]
         if posicao not in [2] and valores_esquerda:
 
             posicao_nova_caixa = max(valores_esquerda)
@@ -108,7 +122,7 @@ class BracoRobotico:
     def colocar_caixa(self, no_sucessor):
         posicao_livre = None
 
-        for i in range(3, 6):
+        for i in range(3, 9):
             if no_sucessor[i] == 0:
                 posicao_livre = i
                 break
@@ -122,7 +136,7 @@ class BracoRobotico:
     def desempilhar_caixa(self, no_sucessor):
         posicao_livre = None
 
-        for i in range(6, 13, 3):
+        for i in range(9, 25, 3):
             if no_sucessor[i] == 0:
                 posicao_livre = i
                 break
