@@ -52,7 +52,7 @@ class BracoRobotico:
         estado = no.estado
         nos_sucessores = []
 
-        posicao = estado[0] # posicao do braco do robo
+        posicao = estado[0]  # posicao do braco do robo
 
         expansoes = [self._direita, self._esquerda]
         random.shuffle(expansoes)
@@ -89,8 +89,6 @@ class BracoRobotico:
         valores_esquerda = [tupla[0] for tupla in self.caixas if tupla[0] < 6]
         if posicao not in [2] and valores_esquerda:
 
-            #random.shuffle(valores_esquerda)
-
             posicao_nova_caixa = max(valores_esquerda)
             self.pegar_caixa(sucessor, posicao_nova_caixa)
 
@@ -110,7 +108,7 @@ class BracoRobotico:
     def colocar_caixa(self, no_sucessor):
         posicao_livre = None
 
-        for i in range(3,6):
+        for i in range(3, 6):
             if no_sucessor[i] == 0:
                 posicao_livre = i
                 break
