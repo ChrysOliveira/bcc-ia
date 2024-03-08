@@ -10,13 +10,15 @@ class BracoRobotico:
       self.no_raiz = None
       self.estado_inicial = np.array([
         3, 0, 0,
-        0, 0, 0,
-        0, 0, 0,
-        20, 0, 0,
         10, 0, 0,
         30, 0, 0,
-        40, 0, 0,
+        0, 0, 0,
         10, 0, 0,
+        0, 0, 0,
+        40, 0, 0,
+        0, 0, 0,
+        20, 0, 0,
+        0, 0, 0,
         30, 0, 0
       ])
       # self.estado_objetivo = np.array([
@@ -40,14 +42,16 @@ class BracoRobotico:
                 self.caixas.append((i, caixa_peso))
 
     def imprimir(self, no):
-      estado = no.estado
+        est = no.estado
 
-      e = "   "
-      print(f"""
-     \r{estado[5]}{e}{estado[8]}{e}{estado[11]}{e}{estado[14]}{e}{estado[17]}{e}{estado[20]}{e}{estado[23]}{e}{estado[26]}
-     \r{estado[4]}{e}{estado[7]}{e}{estado[10]}{e}{estado[13]}{e}{estado[16]}{e}{estado[19]}{e}{estado[22]}{e}{estado[25]}
-     \r{estado[3]}{e}{estado[6]}{e}{estado[9]}{e}{estado[12]}{e}{estado[15]}{e}{estado[18]}{e}{estado[21]}{e}{estado[24]}
-     """)
+        e = "  "
+        u = "_"
+        e2 = " "
+        print(f"""
+        \r{e2}{est[5]}{e2}{e}{e2}{est[8]}
+        \r{e2}{est[4]}{e2}{e}{e2}{est[7]}
+        \r{u}{est[3]}{u}{e}{u}{est[6]}{u}{e}{u}{est[9]}{u}{e}{u}{est[12]}{u}{e}{u}{est[15]}{u}{e}{u}{est[18]}{u}{e}{u}{est[21]}{u}{e}{u}{est[24]}{u}{e}{u}{est[27]}{u}{e}{u}{est[30]}{u}
+        """)
 
     def testar_objetivo(self, no):
 
@@ -83,7 +87,7 @@ class BracoRobotico:
         self.procurar_caixa(sucessor)
 
         valores_direta = [tupla[0] for tupla in self.caixas if tupla[0] > 8]
-        if posicao not in [25] and valores_direta:
+        if valores_direta:
 
             random.shuffle(valores_direta)
             posicao_nova_caixa = valores_direta[0]
@@ -101,7 +105,7 @@ class BracoRobotico:
         self.procurar_caixa(sucessor)
 
         valores_esquerda = [tupla[0] for tupla in self.caixas if tupla[0] < 9]
-        if posicao not in [2] and valores_esquerda:
+        if valores_esquerda:
 
             posicao_nova_caixa = max(valores_esquerda)
             self.pegar_caixa(sucessor, posicao_nova_caixa)
@@ -136,7 +140,7 @@ class BracoRobotico:
     def desempilhar_caixa(self, no_sucessor):
         posicao_livre = None
 
-        for i in range(9, 25, 3):
+        for i in range(9, 31, 3):
             if no_sucessor[i] == 0:
                 posicao_livre = i
                 break
