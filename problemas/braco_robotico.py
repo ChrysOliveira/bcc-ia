@@ -8,6 +8,7 @@ class BracoRobotico:
     def __init__(self):
       self.caixas = None
       self.no_raiz = None
+      self.custo_no = 0.0
       self.estado_inicial = np.array([
         3, 0, 0,
         10, 0, 0,
@@ -120,6 +121,14 @@ class BracoRobotico:
       return casa_atual
 
     def pegar_caixa(self, no_sucessor, nova_posicao):
+
+        if abs((no_sucessor[0] // 3) - (nova_posicao // 3)) == 1:
+            self.custo_no += 1
+        else:
+            self.custo_no += abs((no_sucessor[0] // 3) - (nova_posicao // 3)) * 0.75
+
+        self.custo_no += no_sucessor[nova_posicao] / 10
+
         no_sucessor[0] = nova_posicao
         no_sucessor[1], no_sucessor[nova_posicao] = no_sucessor[nova_posicao], no_sucessor[1]
 
@@ -148,6 +157,20 @@ class BracoRobotico:
         no_sucessor[0] = posicao_livre
 
         no_sucessor[posicao_livre], no_sucessor[1] = no_sucessor[1], no_sucessor[posicao_livre]
+
+    def custo(self, no, no_sucessor):
+        return 1
+
+        # estado_futuro = no_sucessor.estado
+        # posicao = np.where(estado_futuro == "I")[0][0]
+        #
+        # if no.estado[posicao] == "M":
+        #     return 6
+        # elif no.estado[posicao] == "A":
+        #     return 3
+        # else:
+        #     return 1
+
 
 
 
