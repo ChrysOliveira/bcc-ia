@@ -1,178 +1,189 @@
 import random
 import numpy as np
-import copy
-from estruturas.pilha import Pilha
 from no import No
 
 
 class BracoRobotico:
 
     def __init__(self):
-        self.posicoes_iniciais = [10, None, 20]
-        self.estado_inicial = np.array([Pilha(), Pilha(), Pilha()], dtype=Pilha)
-        # self.estado_objetivo = np.matrix([[20, "_", "_"], [10, "_", "_"], ["_", "_", "_"]])
-        self.quantidade_casas = len(self.estado_inicial)
-        self.posicao_braco = int(self.quantidade_casas / 2)
-        self.dic_caixas_para_empilhar = dict()
-        self.casas_reservadas_para_empilhar = []
-        self.esteira_ja_foi_organizada = False
+      self.caixas = None
+      self.no_raiz = None
+      self.custo_direita = 0.0
+      self.custo_esquerda = 0.0
+      self.estado_inicial = np.array([
+        3, 0, 0,
+        10, 0, 0,
+        30, 0, 0,
+        0, 0, 0,
+        10, 0, 0,
+        0, 0, 0,
+        40, 0, 0,
+        0, 0, 0,
+        20, 0, 0,
+        0, 0, 0,
+        30, 0, 0
+      ])
 
     def iniciar(self):
-        # np.random.shuffle(self.posicoes_iniciais)
-        self.popula_posicoes_iniciais()
-        self.cria_dicionario_casas_para_empilhar()
-        self.identifica_casas_reservadas_para_empilhar()
-
         self.no_raiz = No(self.estado_inicial)
+        self.procurar_caixa(self.no_raiz.estado)
         return self.no_raiz
 
-    def popula_posicoes_iniciais(self):
-        for i, item in enumerate(self.posicoes_iniciais):
-            self.estado_inicial[i].push(item)
-            self.estado_inicial[i].push(None)
-            self.estado_inicial[i].push(None)
-
-    def cria_dicionario_casas_para_empilhar(self):
-        esteira = self.estado_inicial
-
-        for i, item in enumerate(esteira):
-            if item.primeiro_valor() is not None:
-                self.dic_caixas_para_empilhar[i] = item.primeiro_valor()
-
-    def identifica_casas_reservadas_para_empilhar(self):
-        for i in range(int(self.quantidade_casas / 3)):
-            self.casas_reservadas_para_empilhar.append(i)
+    def procurar_caixa(self, estado_atual):
+        self.caixas = []
+        for i in range(3, len(estado_atual)):
+            caixa_peso = estado_atual[i]
+            if caixa_peso != 0:
+                self.caixas.append((i, caixa_peso))
 
     def imprimir(self, no):
-        estado = copy.deepcopy(no.estado)
+        est = no.estado
 
-        for i, item in enumerate(estado):
-            while(item.tamanho() > 0):
-                print(item.pop(), end=" ")
-            print()
+        e = "  "
+        u = "_"
+        e2 = " "
+        print(f"""
+        \r{e2}{est[5]}{e2}{e}{e2}{est[8]}
+        \r{e2}{est[4]}{e2}{e}{e2}{est[7]}
+        \r{u}{est[3]}{u}{e}{u}{est[6]}{u}{e}{u}{est[9]}{u}{e}{u}{est[12]}{u}{e}{u}{est[15]}{u}{e}{u}{est[18]}{u}{e}{u}{est[21]}{u}{e}{u}{est[24]}{u}{e}{u}{est[27]}{u}{e}{u}{est[30]}{u}
+        """)
 
     def testar_objetivo(self, no):
-        caixas_somente_nas_pilhas_e_ordenado = True
-        estado = copy.deepcopy(no.estado)
-        for i in self.casas_reservadas_para_empilhar:
-            if(estado[i].esta_sem_caixa()):
-                # caixas_somente_nas_pilhas_e_ordenado = False
-                return False
-            else:
-                menor_valor = estado[i].pop()
-                meio_valor = estado[i].pop()
-                maior_valor = estado[i].pop()
 
-                if(maior_valor is not None and meio_valor is not None):
-                    if (meio_valor > maior_valor):
-                        return False
-                    else:
-                        if(menor_valor is not None):
-                            if(menor_valor > meio_valor):
-                                return False
+        teste = no.estado
+        resposta = 0
 
-                # if(menor_valor > meio_valor or meio_valor > maior_valor):
-                #     caixas_somente_nas_pilhas_e_ordenado = False
+        for i in range(0, (len(self.caixas)) // 3):
+            if teste[(3 * i) + 3] > teste[(3 * i) + 4] > teste[(3 * i) + 5] != 0:
+                resposta += 1
 
-        for i in range(len(self.casas_reservadas_para_empilhar), self.quantidade_casas):
-            if not estado[i].esta_sem_caixa():
-                #caixas_somente_nas_pilhas_e_ordenado = False
-                return False
-
-        return caixas_somente_nas_pilhas_e_ordenado
+        return resposta == (len(self.caixas)) // 3
 
     def gerar_sucessores(self, no):
-        estado = copy.deepcopy(no.estado)
-
+        estado = no.estado
         nos_sucessores = []
 
-        if not self.esteira_ja_foi_organizada:
+        posicao = estado[0]  # posicao do braco do robo
+        self.custo_direita = 0.0
+        self.custo_esquerda = 0.0
 
-            no_sucessor = self.libera_pilhas_reservadas_esquerda(no)
-            if no_sucessor is not None:
-                nos_sucessores.append(no_sucessor)
-                return nos_sucessores
-            elif no_sucessor is None:
-                self.esteira_ja_foi_organizada = True
+        expansoes = [self._direita, self._esquerda]
+        random.shuffle(expansoes)
 
-        print("AAAAAAAA")
-        self.imprimir(no) #CHRYS: estou vendo se fez o swap e atualizou a posicao do braco
-        if self.esteira_ja_foi_organizada:
-
-            expansoes = [self._esquerda, self._direita]  # nos vamos ter direita e esquerda e buscar qualquer caixa por enquanto
-            # random.shuffle(expansoes)
-
-            for expansao in expansoes:
-                no_sucessor = expansao(no)
-                if no_sucessor is not None: nos_sucessores.append(no_sucessor)
+        for expansao in expansoes:
+            no_sucessor = expansao(posicao, no)
+            if no_sucessor is not None: nos_sucessores.append(no_sucessor)
 
         return nos_sucessores
 
-    def libera_pilhas_reservadas_esquerda(self, no):
-        sucessor = copy.deepcopy(no.estado)
-        custo_movimentacao = 0.0
+    def _direita(self, posicao, no):
 
-        for i in self.casas_reservadas_para_empilhar:
-            if not no.estado[i].esta_sem_caixa():
-                pilha = no.estado[i]
-                nova_posicao = i + 1
+        sucessor = np.copy(no.estado)
+        self.procurar_caixa(sucessor)
 
-                while no.estado[nova_posicao] is not None or nova_posicao in self.casas_reservadas_para_empilhar:
-                    nova_posicao = nova_posicao + 1
+        valores_direita = [tupla[0] for tupla in self.caixas if tupla[0] > 8]
+        if valores_direita:
 
-                no.estado[i] = None
-                no.estado[nova_posicao] = pilha
+            random.shuffle(valores_direita)
+            posicao_nova_caixa = valores_direita[0]
+            self.custo_direita += self.pegar_caixa(sucessor, posicao_nova_caixa)
 
-                # if i == len(self.casas_reservadas_para_empilhar) - 1:
-                #     self.esteira_ja_foi_organizada = True
-                self.posicao_braco = nova_posicao
-                return No(sucessor, no, "🔧")
+            self.colocar_caixa(sucessor)
 
-            if i == len(self.casas_reservadas_para_empilhar) - 1:
-                self.esteira_ja_foi_organizada = True
-
-    # movimento para esquerda
-    def _esquerda(self, no):
-
-        if self.posicao_braco not in [0]:
-            # peça de baixo desce
-            sucessor = copy.deepcopy(no.estado)
-            custo_movimentacao = 0.0
-            self.posicao_braco = self.posicao_braco - 1
-
-            # while no.estado[self.posicao_braco][len(no.estado[self.posicao_braco]) - 1] != "_" and self.posicao_braco not in self.casas_reservadas_para_empilhar:
-            #     print("A")
-
-            return No(sucessor, no, "⬅️")
+            return No(sucessor, no, f"""{no.estado[posicao_nova_caixa]}➡️""")
         else:
             None
 
-    # movimento para direita
-    def _direita(self, no):
+    def _esquerda(self, posicao, no):
 
-        if self.posicao_braco not in [self.quantidade_casas - 1]:
-            # peça de baixo desce
-            sucessor = copy.deepcopy(no.estado)
-            custo_movimentacao = 0.0
-            return No(sucessor, no, "➡️")
+        sucessor = np.copy(no.estado)
+        self.procurar_caixa(sucessor)
+
+        valores_esquerda = [tupla[0] for tupla in self.caixas if tupla[0] < 9]
+        if valores_esquerda:
+
+            posicao_nova_caixa = max(valores_esquerda)
+            self.custo_esquerda += self.pegar_caixa(sucessor, posicao_nova_caixa)
+
+            self.desempilhar_caixa(sucessor)
+
+            return No(sucessor, no, f"""{no.estado[posicao_nova_caixa]}⬅️""")
         else:
             None
 
-    # Heurística 1: Checar se os valores
-    # esta heurística não é admissível, pois, pode dificultar
-    # a chegada de um resultado final
-    def heuristica2(self, no):
-        estado = copy.deepcopy(no.estado)
-        resultado = self.estado_objetivo
-        return sum(1 for i in range(len(resultado)) if resultado[i] == estado[i])
+    def pegar_caixa(self, no_sucessor, nova_posicao):
+
+        custo = 0.0
+
+        custo += self.calculo_custo(no_sucessor, nova_posicao)
+        custo += no_sucessor[nova_posicao] / 10
+
+        no_sucessor[0] = nova_posicao
+        no_sucessor[1], no_sucessor[nova_posicao] = no_sucessor[nova_posicao], no_sucessor[1]
+
+        return custo
+
+    def colocar_caixa(self, no_sucessor):
+        posicao_livre = None
+
+        for i in range(3, 9):
+            if no_sucessor[i] == 0:
+                posicao_livre = i
+                break
+
+        self.custo_direita += self.calculo_custo(no_sucessor, posicao_livre)
+
+        no_sucessor[0] = posicao_livre
+
+        no_sucessor[posicao_livre], no_sucessor[1] = no_sucessor[1], no_sucessor[posicao_livre]
+
+        #NAO ESQUECER DE ATUALIZAR O no_sucessor[1] para 0
+
+    def desempilhar_caixa(self, no_sucessor):
+        posicao_livre = None
+
+        for i in range(9, 31, 3):
+            if no_sucessor[i] == 0:
+                posicao_livre = i
+                break
+
+        self.custo_esquerda += self.calculo_custo(no_sucessor, posicao_livre)
+
+        no_sucessor[0] = posicao_livre
+
+        no_sucessor[posicao_livre], no_sucessor[1] = no_sucessor[1], no_sucessor[posicao_livre]
+
+    def calculo_custo(self, pos_atual, pos_meta):
+        if abs((pos_atual[0] // 3) - (pos_meta // 3)) == 1:
+            return 1.0
+        else:
+            return abs((pos_atual[0] // 3) - (pos_meta // 3)) * 0.75
+
+    def custo(self, no, no_sucessor):
+
+        custo_total = 0.0
+
+        if no_sucessor.estado[0] > 8:
+            custo_total = self.custo_esquerda
+            self.custo_esquerda = 0.0
+        else:
+            custo_total = self.custo_direita
+            self.custo_direita = 0.0
+
+        return custo_total
+
+
+
 
     # Heurística 2: Distância para o resultado espero
     # Heurística adminissível, pois, sempre o resultado chega mais perto
     # Transformei o array em matriz para fazer cálculo de distância
     def heuristica(self, no):
-        estado = copy.deepcopy(no.estado)
-        resultado = [["1", "2", "3"], ["4", "5", "6"], ["7", "8", "_"]]
-        estado_matriz = [estado[0:3], estado[3:6], estado[6:9]]
+        estado = no.estado
+        resultado = [[40, 30, 10], [30, 20, 10], [0, 0, 0], [0, 0, 0], [0, 0, 0],
+                     [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]]
+        estado_matriz = [estado[3:6], estado[6:9], estado[9:12], estado[12:15], estado[15:18],
+                         estado[18:21], estado[21:24], estado[24:27], estado[27:30], estado[30:33]]
 
         soma = 0
 
@@ -185,12 +196,6 @@ class BracoRobotico:
 
     # Distância de Manhattan: d = |xi-xj| + |yi-yj|
     def _distancia_manhattan(self, valor, estado, i, j):
-        for k in range(len(estado)):
-            for h in range(len(estado[k])):
-                if valor == estado[k][h]: return abs(i - k) + abs(j - h)
-
-    # Função de custo: Quando custa mover de um
-    # estado_origem para estado_destino. No Quebra Cabeça
-    # de 8, este custo é fixo e arbitrariamente será 1.
-    def custo(self, no, no_destino):
-        return 1
+      for k in range(len(estado)):
+        for h in range(len(estado[k])):
+          if valor == estado[k][h]: return abs(i - k) + abs(j - h)

@@ -11,3 +11,6 @@ class No:
 
   def __lt__(self, outro):
     return (self.custo + self.heuristica) < (outro.custo + outro.heuristica)
+
+  def custo_total(self):
+    return self.custo
