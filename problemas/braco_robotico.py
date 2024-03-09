@@ -8,6 +8,8 @@ class BracoRobotico:
     def __init__(self):
       self.caixas = None
       self.no_raiz = None
+      self.custo_direita = 0.0
+      self.custo_esquerda = 0.0
       self.estado_inicial = np.array([
         3, 0, 0,
         10, 0, 0,
@@ -21,13 +23,6 @@ class BracoRobotico:
         0, 0, 0,
         30, 0, 0
       ])
-      # self.estado_objetivo = np.array([
-      #   5, 0, 0,
-      #   30, 20, 10,
-      #   0, 0, 0,
-      #   0, 0, 0,
-      #   0, 0, 0
-      # ])
 
     def iniciar(self):
         self.no_raiz = No(self.estado_inicial)
@@ -61,9 +56,7 @@ class BracoRobotico:
         for i in range(0, (len(self.caixas)) // 3):
             if teste[(3 * i) + 3] > teste[(3 * i) + 4] > teste[(3 * i) + 5] != 0:
                 resposta += 1
-            #print(f"""{teste[(3 * i) + 3]}{teste[(3 * i) + 4]}{teste[(3 * i) + 5]}""")
 
-        # return np.array_equal(no.estado, self.estado_objetivo)
         return resposta == (len(self.caixas)) // 3
 
     def gerar_sucessores(self, no):
@@ -71,6 +64,8 @@ class BracoRobotico:
         nos_sucessores = []
 
         posicao = estado[0]  # posicao do braco do robo
+        self.custo_direita = 0.0
+        self.custo_esquerda = 0.0
 
         expansoes = [self._direita, self._esquerda]
         random.shuffle(expansoes)
@@ -91,11 +86,11 @@ class BracoRobotico:
 
             random.shuffle(valores_direta)
             posicao_nova_caixa = valores_direta[0]
-            self.pegar_caixa(sucessor, posicao_nova_caixa, no)
+            self.custo_direita += self.pegar_caixa(sucessor, posicao_nova_caixa)
 
-            self.colocar_caixa(sucessor, no)
+            self.colocar_caixa(sucessor)
 
-            return No(sucessor, no, "➡️")
+            return No(sucessor, no, f"""{no.estado[posicao_nova_caixa]}➡️""")
         else:
             None
 
@@ -108,23 +103,27 @@ class BracoRobotico:
         if valores_esquerda:
 
             posicao_nova_caixa = max(valores_esquerda)
-            self.pegar_caixa(sucessor, posicao_nova_caixa, no)
+            self.custo_esquerda += self.pegar_caixa(sucessor, posicao_nova_caixa)
 
-            self.desempilhar_caixa(sucessor, no)
+            self.desempilhar_caixa(sucessor)
 
-            return No(sucessor, no, "⬅️")
+            return No(sucessor, no, f"""{no.estado[posicao_nova_caixa]}⬅️""")
         else:
             None
 
-    def pegar_caixa(self, no_sucessor, nova_posicao, no):
+    def pegar_caixa(self, no_sucessor, nova_posicao):
 
-        #no.custo += self.calculo_custo(no_sucessor, nova_posicao)
-        #no.custo += no_sucessor[nova_posicao] / 10
+        custo = 0.0
+
+        custo += self.calculo_custo(no_sucessor, nova_posicao)
+        custo += no_sucessor[nova_posicao] / 10
 
         no_sucessor[0] = nova_posicao
         no_sucessor[1], no_sucessor[nova_posicao] = no_sucessor[nova_posicao], no_sucessor[1]
 
-    def colocar_caixa(self, no_sucessor, no):
+        return custo
+
+    def colocar_caixa(self, no_sucessor):
         posicao_livre = None
 
         for i in range(3, 9):
@@ -132,7 +131,7 @@ class BracoRobotico:
                 posicao_livre = i
                 break
 
-        #no.custo += self.calculo_custo(no_sucessor, posicao_livre)
+        self.custo_direita += self.calculo_custo(no_sucessor, posicao_livre)
 
         no_sucessor[0] = posicao_livre
 
@@ -140,7 +139,7 @@ class BracoRobotico:
 
         #NAO ESQUECER DE ATUALIZAR O no_sucessor[1] para 0
 
-    def desempilhar_caixa(self, no_sucessor, no):
+    def desempilhar_caixa(self, no_sucessor):
         posicao_livre = None
 
         for i in range(9, 31, 3):
@@ -148,7 +147,7 @@ class BracoRobotico:
                 posicao_livre = i
                 break
 
-        #no.custo += self.calculo_custo(no_sucessor, posicao_livre)
+        self.custo_esquerda += self.calculo_custo(no_sucessor, posicao_livre)
 
         no_sucessor[0] = posicao_livre
 
@@ -161,17 +160,17 @@ class BracoRobotico:
             return abs((pos_atual[0] // 3) - (pos_meta // 3)) * 0.75
 
     def custo(self, no, no_sucessor):
-        return 1
 
-        # estado_futuro = no_sucessor.estado
-        # posicao = np.where(estado_futuro == "I")[0][0]
-        #
-        # if no.estado[posicao] == "M":
-        #     return 6
-        # elif no.estado[posicao] == "A":
-        #     return 3
-        # else:
-        #     return 1
+        custo_total = 0.0
+
+        if no_sucessor.estado[0] > 8:
+            custo_total = self.custo_esquerda
+            self.custo_esquerda = 0.0
+        else:
+            custo_total = self.custo_direita
+            self.custo_direita = 0.0
+
+        return custo_total
 
 
 
