@@ -81,11 +81,11 @@ class BracoRobotico:
         sucessor = np.copy(no.estado)
         self.procurar_caixa(sucessor)
 
-        valores_direta = [tupla[0] for tupla in self.caixas if tupla[0] > 8]
-        if valores_direta:
+        valores_direita = [tupla[0] for tupla in self.caixas if tupla[0] > 8]
+        if valores_direita:
 
-            random.shuffle(valores_direta)
-            posicao_nova_caixa = valores_direta[0]
+            random.shuffle(valores_direita)
+            posicao_nova_caixa = valores_direita[0]
             self.custo_direita += self.pegar_caixa(sucessor, posicao_nova_caixa)
 
             self.colocar_caixa(sucessor)
@@ -175,39 +175,27 @@ class BracoRobotico:
 
 
 
-    # Heurística 1: Checar se os valores
-    # esta heurística não é admissível, pois, pode dificultar
-    # a chegada de um resultado final
-    # def heuristica2(self, no):
-    #   estado = no.estado
-    #   resultado = self.estado_objetivo
-    #   return sum(1 for i in range(len(resultado)) if resultado[i] == estado[i])
-    #
-    # # Heurística 2: Distância para o resultado espero
-    # # Heurística adminissível, pois, sempre o resultado chega mais perto
-    # # Transformei o array em matriz para fazer cálculo de distância
-    # def heuristica(self, no):
-    #   estado = no.estado
-    #   resultado = [["1", "2", "3"], ["4", "5", "6"], ["7", "8", "_"]]
-    #   estado_matriz = [estado[0:3], estado[3:6], estado[6:9]]
-    #
-    #   soma = 0
-    #
-    #   for i in range(len(resultado)):
-    #     for j in range(len(resultado[i])):
-    #       valor = resultado[i][j]
-    #       soma = soma + self._distancia_manhattan(valor, estado_matriz, i, j)
-    #
-    #   return soma
-    #
-    # # Distância de Manhattan: d = |xi-xj| + |yi-yj|
-    # def _distancia_manhattan(self, valor, estado, i, j):
-    #   for k in range(len(estado)):
-    #     for h in range(len(estado[k])):
-    #       if valor == estado[k][h]: return abs(i - k) + abs(j - h)
-    #
-    # # Função de custo: Quando custa mover de um
-    # # estado_origem para estado_destino. No Quebra Cabeça
-    # # de 8, este custo é fixo e arbitrariamente será 1.
-    # def custo(self, no, no_destino):
-    #   return 1
+    # Heurística 2: Distância para o resultado espero
+    # Heurística adminissível, pois, sempre o resultado chega mais perto
+    # Transformei o array em matriz para fazer cálculo de distância
+    def heuristica(self, no):
+        estado = no.estado
+        resultado = [[40, 30, 10], [30, 20, 10], [0, 0, 0], [0, 0, 0], [0, 0, 0],
+                     [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]]
+        estado_matriz = [estado[3:6], estado[6:9], estado[9:12], estado[12:15], estado[15:18],
+                         estado[18:21], estado[21:24], estado[24:27], estado[27:30], estado[30:33]]
+
+        soma = 0
+
+        for i in range(len(resultado)):
+            for j in range(len(resultado[i])):
+                valor = resultado[i][j]
+                soma = soma + self._distancia_manhattan(valor, estado_matriz, i, j)
+
+        return soma
+
+    # Distância de Manhattan: d = |xi-xj| + |yi-yj|
+    def _distancia_manhattan(self, valor, estado, i, j):
+      for k in range(len(estado)):
+        for h in range(len(estado[k])):
+          if valor == estado[k][h]: return abs(i - k) + abs(j - h)
