@@ -8,7 +8,6 @@ class BracoRobotico:
     def __init__(self):
       self.caixas = None
       self.no_raiz = None
-      self.custo_no = 0.0
       self.estado_inicial = np.array([
         3, 0, 0,
         10, 0, 0,
@@ -92,9 +91,9 @@ class BracoRobotico:
 
             random.shuffle(valores_direta)
             posicao_nova_caixa = valores_direta[0]
-            self.pegar_caixa(sucessor, posicao_nova_caixa)
+            self.pegar_caixa(sucessor, posicao_nova_caixa, no)
 
-            self.colocar_caixa(sucessor)
+            self.colocar_caixa(sucessor, no)
 
             return No(sucessor, no, "➡️")
         else:
@@ -109,30 +108,23 @@ class BracoRobotico:
         if valores_esquerda:
 
             posicao_nova_caixa = max(valores_esquerda)
-            self.pegar_caixa(sucessor, posicao_nova_caixa)
+            self.pegar_caixa(sucessor, posicao_nova_caixa, no)
 
-            self.desempilhar_caixa(sucessor)
+            self.desempilhar_caixa(sucessor, no)
 
             return No(sucessor, no, "⬅️")
         else:
             None
 
-    def calcula_posicao_braco(self, casa_atual):
-      return casa_atual
+    def pegar_caixa(self, no_sucessor, nova_posicao, no):
 
-    def pegar_caixa(self, no_sucessor, nova_posicao):
-
-        if abs((no_sucessor[0] // 3) - (nova_posicao // 3)) == 1:
-            self.custo_no += 1
-        else:
-            self.custo_no += abs((no_sucessor[0] // 3) - (nova_posicao // 3)) * 0.75
-
-        self.custo_no += no_sucessor[nova_posicao] / 10
+        #no.custo += self.calculo_custo(no_sucessor, nova_posicao)
+        #no.custo += no_sucessor[nova_posicao] / 10
 
         no_sucessor[0] = nova_posicao
         no_sucessor[1], no_sucessor[nova_posicao] = no_sucessor[nova_posicao], no_sucessor[1]
 
-    def colocar_caixa(self, no_sucessor):
+    def colocar_caixa(self, no_sucessor, no):
         posicao_livre = None
 
         for i in range(3, 9):
@@ -140,13 +132,15 @@ class BracoRobotico:
                 posicao_livre = i
                 break
 
+        #no.custo += self.calculo_custo(no_sucessor, posicao_livre)
+
         no_sucessor[0] = posicao_livre
 
         no_sucessor[posicao_livre], no_sucessor[1] = no_sucessor[1], no_sucessor[posicao_livre]
 
         #NAO ESQUECER DE ATUALIZAR O no_sucessor[1] para 0
 
-    def desempilhar_caixa(self, no_sucessor):
+    def desempilhar_caixa(self, no_sucessor, no):
         posicao_livre = None
 
         for i in range(9, 31, 3):
@@ -154,9 +148,17 @@ class BracoRobotico:
                 posicao_livre = i
                 break
 
+        #no.custo += self.calculo_custo(no_sucessor, posicao_livre)
+
         no_sucessor[0] = posicao_livre
 
         no_sucessor[posicao_livre], no_sucessor[1] = no_sucessor[1], no_sucessor[posicao_livre]
+
+    def calculo_custo(self, pos_atual, pos_meta):
+        if abs((pos_atual[0] // 3) - (pos_meta // 3)) == 1:
+            return 1.0
+        else:
+            return abs((pos_atual[0] // 3) - (pos_meta // 3)) * 0.75
 
     def custo(self, no, no_sucessor):
         return 1
