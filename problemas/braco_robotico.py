@@ -6,25 +6,34 @@ from no import No
 class BracoRobotico:
 
     def __init__(self):
-      self.caixas = None
-      self.no_raiz = None
-      self.custo_direita = 0.0
-      self.custo_esquerda = 0.0
-      self.estado_inicial = np.array([
-        3, 0, 0,
-        10, 0, 0,
-        30, 0, 0,
-        0, 0, 0,
-        10, 0, 0,
-        0, 0, 0,
-        40, 0, 0,
-        0, 0, 0,
-        20, 0, 0,
-        0, 0, 0,
-        30, 0, 0
-      ])
+        self.caixas = None
+        self.no_raiz = None
+        self.custo_direita = 0.0
+        self.custo_esquerda = 0.0
+        self.qtd_pilhas_necessarias = 2
+        self.estado_inicial2 = np.array([3, 0, 0])
+        self.estado_inicial = np.array([
+            3, 0, 0,
+            10, 0, 0,
+            30, 0, 0,
+            0, 0, 0,
+            10, 0, 0,
+            0, 0, 0,
+            40, 0, 0,
+            0, 0, 0,
+            20, 0, 0,
+            0, 0, 0,
+            30, 0, 0
+        ])
 
-    def iniciar(self):
+    def gerar_estado_inicial(self, qtd_esteira):
+        num_rand =
+
+        for i in range(qtd_esteira):
+
+
+    def iniciar(self, qtd_esteira):
+        self.gerar_estado_inicial(qtd_esteira)
         self.no_raiz = No(self.estado_inicial)
         self.procurar_caixa(self.no_raiz.estado)
         return self.no_raiz
@@ -42,11 +51,37 @@ class BracoRobotico:
         e = "  "
         u = "_"
         e2 = " "
-        print(f"""
-        \r{e2}{est[5]}{e2}{e}{e2}{est[8]}
-        \r{e2}{est[4]}{e2}{e}{e2}{est[7]}
-        \r{u}{est[3]}{u}{e}{u}{est[6]}{u}{e}{u}{est[9]}{u}{e}{u}{est[12]}{u}{e}{u}{est[15]}{u}{e}{u}{est[18]}{u}{e}{u}{est[21]}{u}{e}{u}{est[24]}{u}{e}{u}{est[27]}{u}{e}{u}{est[30]}{u}
-        """)
+
+        esteira = "\n"
+        print_linha = 2
+        i = 0
+
+        while i < 31:
+            if 0 < self.qtd_pilhas_necessarias and i < 2:
+                if i > 0:
+                    esteira = esteira + "\n"
+                    print_linha = print_linha - 1
+                j = 1
+                while j <= self.qtd_pilhas_necessarias:
+                    esteira = esteira + f"{e2}{est[j * 3 + print_linha]}{e2}{e}"
+                    j = j + 1
+
+                i = i + 1
+            else:
+                if i <= 2:
+                    esteira = esteira + "\n"
+                    i = i + 1
+
+                esteira = esteira + f"{u}{est[i]}{u}{e}"
+                i = i + 3
+
+        print(esteira)
+
+        # print(f"""
+        # \r{e2}{est[5]}{e2}{e}{e2}{est[8]}
+        # \r{e2}{est[4]}{e2}{e}{e2}{est[7]}
+        # \r{u}{est[3]}{u}{e}{u}{est[6]}{u}{e}{u}{est[9]}{u}{e}{u}{est[12]}{u}{e}{u}{est[15]}{u}{e}{u}{est[18]}{u}{e}{u}{est[21]}{u}{e}{u}{est[24]}{u}{e}{u}{est[27]}{u}{e}{u}{est[30]}{u}
+        # """)
 
     def testar_objetivo(self, no):
 
@@ -137,7 +172,7 @@ class BracoRobotico:
 
         no_sucessor[posicao_livre], no_sucessor[1] = no_sucessor[1], no_sucessor[posicao_livre]
 
-        #NAO ESQUECER DE ATUALIZAR O no_sucessor[1] para 0
+        # NAO ESQUECER DE ATUALIZAR O no_sucessor[1] para 0
 
     def desempilhar_caixa(self, no_sucessor):
         posicao_livre = None
@@ -172,9 +207,6 @@ class BracoRobotico:
 
         return custo_total
 
-
-
-
     # Heurística 2: Distância para o resultado espero
     # Heurística adminissível, pois, sempre o resultado chega mais perto
     # Transformei o array em matriz para fazer cálculo de distância
@@ -196,6 +228,6 @@ class BracoRobotico:
 
     # Distância de Manhattan: d = |xi-xj| + |yi-yj|
     def _distancia_manhattan(self, valor, estado, i, j):
-      for k in range(len(estado)):
-        for h in range(len(estado[k])):
-          if valor == estado[k][h]: return abs(i - k) + abs(j - h)
+        for k in range(len(estado)):
+            for h in range(len(estado[k])):
+                if valor == estado[k][h]: return abs(i - k) + abs(j - h)

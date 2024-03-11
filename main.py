@@ -10,8 +10,8 @@ if __name__ == "__main__":
 
     #(qtd_estados_visitados, no_solucao) = dfs(problema)
     #(qtd_estados_visitados, no_solucao) = bfs(problema)
-    (qtd_estados_visitados, no_solucao) = a_estrela(problema)
-    #(qtd_estados_visitados, no_solucao) = dijkstra(problema)
+    #(qtd_estados_visitados, no_solucao) = a_estrela(problema)
+    (qtd_estados_visitados, no_solucao) = dijkstra(problema)
 
     if(no_solucao is None):
         print("Não houve solução ao problema")
