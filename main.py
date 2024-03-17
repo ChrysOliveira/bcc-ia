@@ -12,7 +12,6 @@ if __name__ == "__main__":
     #(qtd_estados_visitados, no_solucao) = bfs(problema)
     (qtd_estados_visitados, no_solucao) = a_estrela(problema)
     #(qtd_estados_visitados, no_solucao) = dijkstra(problema)
-
     if(no_solucao is None):
         print("Não houve solução ao problema")
     else:
@@ -35,6 +34,7 @@ if __name__ == "__main__":
 
     for i in range(10):
         (qtd_estados_visitados, no_solucao) = a_estrela(problema)
-        custo_media = custo_media + no_solucao.custo_total()
+        if(no_solucao is not None):
+            custo_media = custo_media + no_solucao.custo_total()
 
     print(f"Custo medio: {custo_media/10}")
