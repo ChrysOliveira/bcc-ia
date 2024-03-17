@@ -65,7 +65,7 @@ class BracoRobotico:
 
         posicao = estado[0]  # posicao do braco do robo
         self.custo_direita = 0.0
-        self.custo_esquerda = 0.0
+        self.custo_esquerda = 0.0 # É necessário zerar os custos a cada nova geração para que não acumulem.
 
         expansoes = [self._direita, self._esquerda]
         random.shuffle(expansoes)
@@ -79,9 +79,9 @@ class BracoRobotico:
     def _direita(self, posicao, no):
 
         sucessor = np.copy(no.estado)
-        self.procurar_caixa(sucessor)
+        self.procurar_caixa(sucessor) # atualizar as posições das caixas
 
-        valores_direita = [tupla[0] for tupla in self.caixas if tupla[0] > 8]
+        valores_direita = [tupla[0] for tupla in self.caixas if tupla[0] > 8] # olha para valores depois do espaço reservado para empilhamento
         if valores_direita:
 
             random.shuffle(valores_direita)
@@ -99,7 +99,7 @@ class BracoRobotico:
         sucessor = np.copy(no.estado)
         self.procurar_caixa(sucessor)
 
-        valores_esquerda = [tupla[0] for tupla in self.caixas if tupla[0] < 9]
+        valores_esquerda = [tupla[0] for tupla in self.caixas if tupla[0] < 9] # olha para os valores reservados para empilhamento
         if valores_esquerda:
 
             posicao_nova_caixa = max(valores_esquerda)
@@ -116,7 +116,7 @@ class BracoRobotico:
         custo = 0.0
 
         custo += self.calculo_custo(no_sucessor, nova_posicao)
-        custo += no_sucessor[nova_posicao] / 10
+        custo += no_sucessor[nova_posicao] / 10  # custo do peso da caixa
 
         no_sucessor[0] = nova_posicao
         no_sucessor[1], no_sucessor[nova_posicao] = no_sucessor[nova_posicao], no_sucessor[1]
@@ -127,7 +127,7 @@ class BracoRobotico:
         posicao_livre = None
 
         for i in range(3, 9):
-            if no_sucessor[i] == 0:
+            if no_sucessor[i] == 0:  # procura o próximo valor livre pra empilhar
                 posicao_livre = i
                 break
 
@@ -137,13 +137,11 @@ class BracoRobotico:
 
         no_sucessor[posicao_livre], no_sucessor[1] = no_sucessor[1], no_sucessor[posicao_livre]
 
-        #NAO ESQUECER DE ATUALIZAR O no_sucessor[1] para 0
-
     def desempilhar_caixa(self, no_sucessor):
         posicao_livre = None
 
         for i in range(9, 31, 3):
-            if no_sucessor[i] == 0:
+            if no_sucessor[i] == 0:  # procura o espaço vazio na esteira mais proximo à direita para deixar a caixa
                 posicao_livre = i
                 break
 
@@ -153,31 +151,25 @@ class BracoRobotico:
 
         no_sucessor[posicao_livre], no_sucessor[1] = no_sucessor[1], no_sucessor[posicao_livre]
 
-    def calculo_custo(self, pos_atual, pos_meta):
-        if abs((pos_atual[0] // 3) - (pos_meta // 3)) == 1:
-            return 1.0
+    def calculo_custo(self, pos_atual, pos_meta):  # calcula o custo do movimento
+        if abs((pos_atual[0] // 3) - (pos_meta // 3)) == 1: 
+            return 1.0  # retorna custo 1 se o braço só andar uma posição em relação a esteira
         else:
-            return abs((pos_atual[0] // 3) - (pos_meta // 3)) * 0.75
+            return abs((pos_atual[0] // 3) - (pos_meta // 3)) * 0.75  # retorna a quantidade de posições de ESTEIRA que ele andou * 0,75
 
     def custo(self, no, no_sucessor):
 
         custo_total = 0.0
 
-        if no_sucessor.estado[0] > 8:
+        if no_sucessor.estado[0] > 8:  # se o braço estiver DEPOIS das pilhas reservadas para empilhamento, significa que ele DESEMPILHOU uma caixa, ou seja, se atribui o custo do movimento para esquerda.
             custo_total = self.custo_esquerda
             self.custo_esquerda = 0.0
         else:
-            custo_total = self.custo_direita
+            custo_total = self.custo_direita  # se o braço estiver DENTRO das pilhas reservadas para empilhamento, significa que ele acabou de EMPILHAR uma caixa, ou seja, se atribui o custo do movimento para direita.
             self.custo_direita = 0.0
 
         return custo_total
 
-
-
-
-    # Heurística 2: Distância para o resultado espero
-    # Heurística adminissível, pois, sempre o resultado chega mais perto
-    # Transformei o array em matriz para fazer cálculo de distância
     def heuristica(self, no):
         estado = no.estado
         resultado = [[40, 30, 10], [30, 20, 10], [0, 0, 0], [0, 0, 0], [0, 0, 0],
